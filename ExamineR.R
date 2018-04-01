@@ -106,10 +106,10 @@ opendir <- function(dir = getwd()) {
 }
 
 
-
+# MAC INPUT
 #exam.title <- file.choose()
 
-# WINDOWS ONLY
+# WINDOWS INPUT
 input.files <- choose.files()
 
 for (exam.count in 1:length(input.files)) {
