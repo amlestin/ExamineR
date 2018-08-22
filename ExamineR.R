@@ -106,11 +106,12 @@ opendir <- function(dir = getwd()) {
 }
 
 
-# MAC INPUT
-#exam.title <- file.choose()
-
-# WINDOWS INPUT
-input.files <- choose.files()
+if (.Platform['OS.type'] == "windows") {
+  input.files <- choose.files()
+} else {
+  # only supports one file at a time, in the future may loop through files directory with list.dir
+  input.files <- file.choose()
+}
 
 for (exam.count in 1:length(input.files)) {
   current.exam <- input.files[exam.count]
