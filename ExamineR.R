@@ -33,13 +33,16 @@ process_exam <- function(exam_file) {
   sorted.questions <- questions[order(questions)]
   sorted.answers <- answers[order(questions)]
   
-  stripped.questions <- c()
+  # pre-allocate size of stripped questions vector
+  stripped.questions <- vector(mode = "character", length = length(sorted.questions))
   
   for (question.index in 1:length(sorted.questions)) {
     stripped.question <-
       unlist(strsplit(sorted.questions[question.index], "\\."))[-1]
+    
     stripped.question.string <-
       paste(stripped.question, collapse = ' ')
+    
     stripped.question.string <-
       unlist(strwrap(
         stripped.question.string,
@@ -47,8 +50,11 @@ process_exam <- function(exam_file) {
         indent = 5,
         simplify = FALSE
       ))
-    stripped.questions <-
-      c(stripped.questions, stripped.question.string)
+    
+    stripped.question.string <-
+      paste(stripped.question[-1], collapse = ' ')
+    
+    stripped.questions[question.index] <- stripped.question.string
   }
   
   student.roster <- c()
