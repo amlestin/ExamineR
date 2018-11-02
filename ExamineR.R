@@ -1,7 +1,32 @@
-CombineReports <- function() {
+ChooseCombineReports <- function() {
   report.paths <- choose.files()
   
-  print(report.paths)
+  output.file.name <- basename(report.paths[1])
+  output.file.name.vector <- unlist(strsplit(output.file.name, ""))
+  period.index <- which(output.file.name.vector == ".")
+  extensionless.output.file.name <- substr(output.file.name, 1, period.index - 1)
+  first.and.last.names <- paste(unlist(strsplit(extensionless.output.file.name, " "))[1:2], collapse = " ")
+  output.file.name <- paste(first.and.last.names, "Combined Report.csv", collapse = "")
+  
+  
+  combined.report <- c()
+  column.labels <- c("Question",	"Answer",	"Points Earned")
+  for (report in report.paths) {
+    
+    current.report <- read.csv(report, stringsAsFactors = FALSE, header = FALSE)
+    current.report <- current.report[-1, ]
+    section.header <- c(basename(report), "", "")
+    
+    combined.report <- rbind(
+      combined.report,
+      section.header,
+      column.labels,
+      current.report
+    )
+  }
+  
+  colnames(combined.report) <- NULL
+  write.csv(combined.report, output.file.name, row.names = FALSE)
 }
 
 # outputs a report folder for the exam at the path exam_file
