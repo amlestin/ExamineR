@@ -1,3 +1,4 @@
+# outputs a report folder for the exam at the path exam_file
 process_exam <- function(exam_file) {
   exam.title <- exam_file
   
@@ -101,6 +102,7 @@ process_exam <- function(exam_file) {
   
 }
 
+# function to open a file explorer from R
 # https://stackoverflow.com/questions/12135732/how-to-open-working-directory-directly-from-r-console
 
 opendir <- function(dir = getwd()) {
@@ -119,6 +121,7 @@ if (.Platform['OS.type'] == "windows") {
   input.files <- file.choose()
 }
 
+# creates a report for each exam file selected by the user
 for (exam.count in 1:length(input.files)) {
   current.exam <- input.files[exam.count]
   print(paste("Processing ", current.exam, "...", sep = ""))
