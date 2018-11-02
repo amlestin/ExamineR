@@ -1,4 +1,4 @@
-format.student.csv <- function(input.file) {
+FormatStudentCSV <- function(input.file) {
 #install.packages("xlsx", dependencies = TRUE)
 library(xlsx)
 

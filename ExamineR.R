@@ -1,5 +1,11 @@
+CombineReports <- function() {
+  report.paths <- choose.files()
+  
+  print(report.paths)
+}
+
 # outputs a report folder for the exam at the path exam_file
-process_exam <- function(exam_file) {
+ProcessExam <- function(exam_file) {
   exam.title <- exam_file
   
   report <- read.csv(exam.title)
@@ -105,7 +111,7 @@ process_exam <- function(exam_file) {
 # function to open a file explorer from R
 # https://stackoverflow.com/questions/12135732/how-to-open-working-directory-directly-from-r-console
 
-opendir <- function(dir = getwd()) {
+OpenDir <- function(dir = getwd()) {
   if (.Platform['OS.type'] == "windows") {
     shell.exec(dir)
   } else {
@@ -125,9 +131,9 @@ if (.Platform['OS.type'] == "windows") {
 for (exam.count in 1:length(input.files)) {
   current.exam <- input.files[exam.count]
   print(paste("Processing ", current.exam, "...", sep = ""))
-  process_exam(current.exam)
+  ProcessExam(current.exam)
   print("Report processed. Check your input directory for the exam folder.")
-  opendir()
+  OpenDir()
 }
 
 
