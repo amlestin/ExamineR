@@ -151,10 +151,11 @@ ProcessExam <- function(exam_file) {
     colnames(student.report) <-
       c("Question", "Answer", "Points Earned")
     
-    
+    student.id <- as.character(report[i, "sis_id"])
+
     write.table(
       student.report,
-      paste(trimws(student.name), ".csv", sep = ""),
+      paste(student.id, "-", trimws(student.name), ".csv", sep = ""),
       sep = ",",
       row.names = FALSE,
       na = ""
