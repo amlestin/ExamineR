@@ -90,17 +90,29 @@ ProcessExam <- function(exam_file) {
     colnames(student.report) <-
       c("Question", "Answer", "Points Earned")
     
-    student.id <- as.character(report[i, "sis_id"]) # gets student ID
+    student.id <-
+      as.character(report[i, "sis_id"]) # gets student ID
     
-    exam.title <- as.character(report[i, "section"]) # extracts class code and name
-    split.exam.title <- unlist(strsplit(exam.title, " ")) # creates character vector
+    exam.title <-
+      as.character(report[i, "section"]) # extracts class code and name
+    split.exam.title <-
+      unlist(strsplit(exam.title, " ")) # creates character vector
     class.name <- split.exam.title[-1] # removes class code
-    class.name <- paste(class.name, collapse = " ") # class name as character
+    class.name <-
+      paste(class.name, collapse = " ") # class name as character
     class.name <- make.names(class.name)
-      
+    
     write.table(
       student.report,
-      paste(student.id, "-", class.name, "-", trimws(student.name), ".csv", sep = ""),
+      paste(
+        student.id,
+        "-",
+        class.name,
+        "-",
+        trimws(student.name),
+        ".csv",
+        sep = ""
+      ),
       sep = ",",
       row.names = FALSE,
       na = ""
