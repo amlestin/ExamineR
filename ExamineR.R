@@ -1,6 +1,6 @@
+library(openxlsx) # library for reading and creating Excel XLSX files
+
 ChooseAndCombineReports <- function() {
-  library(openxlsx) # library for reading and creating Excel XLSX files
-  
   report.paths <- choose.files()
   
   # extracts the input filename and modifies it to create an output filename
@@ -17,22 +17,27 @@ ChooseAndCombineReports <- function() {
   
   for (report in report.paths) {
     current.report <- read.csv(report, stringsAsFactors = FALSE, header = FALSE) # read in a report
-    current.report <- current.report[-1, ] # remove the column headers
+    current.report <- current.report[-1, ] # remove the column headers e.g. Question Answer Points.Earned
     
     section.header <- c(basename(report), "", "") # creates an exam title using the input filename
     
     current.report <- rbind(section.header, c("", "",""), column.labels, current.report) # create a modified report
     
-    colnames(current.report) <- NULL # remove automatic column names
-    current.report[-(length(current.report) - 1), ] # remove the NA values in the last row of the modified report
+   # colnames(current.report) <- NULL # remove automatic column names
+   # current.report <- current.report[-(length(current.report) - 1), ] # remove the NA values in the last row of the modified report
     
     addWorksheet(wb, sheet.number) # add modified report to a worksheet
+    
+    # formats the questions with zero points to be more visible
+    zero.points.style <- createStyle(bgFill = "#FFC7CE")
+    conditionalFormatting(wb, sheet.number, cols = 3, rows = (4:nrow(current.report)),type = "contains", rule = "0", style = zero.points.style)
+    
     writeData(wb, sheet = sheet.number, current.report, colNames = FALSE) # add the new worksheet to the workbook
     sheet.number <- sheet.number + 1 # increment sheet number for next report
   }
   
   
-  saveWorkbook(wb, "Combined.xlsx", TRUE) # writes a workbook containing all reports inputted
+  saveWorkbook(wb, "Combined.xlsx", overwrite = TRUE) # writes a workbook containing all reports inputted
 }
 
 # outputs a report folder for the exam at the path exam_file
