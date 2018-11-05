@@ -1,64 +1,3 @@
-library(openxlsx) # library for reading and creating Excel XLSX files
-
-ChooseAndCombineReports <- function() {
-  report.paths <- choose.files()
-  
-  # extracts the input filename and modifies it to create an output filename
-  output.file.name <- basename(report.paths[1])
-  output.file.name.vector <- unlist(strsplit(output.file.name, ""))
-  period.index <- which(output.file.name.vector == ".")
-  extensionless.output.file.name <-
-    substr(output.file.name, 1, period.index - 1)
-  first.and.last.names <-
-    paste(unlist(strsplit(extensionless.output.file.name, " "))[1:2], collapse = " ")
-  output.file.name <-
-    paste(first.and.last.names, "Combined Report.csv", collapse = "")
-  
-  column.labels <- c("Question",	"Answer",	"Points Earned")
-  wb <- createWorkbook("Admin")
-  sheet.number <- 1
-  
-  for (report in report.paths) {
-    current.report <-
-      read.csv(report, stringsAsFactors = FALSE, header = FALSE) # read in a report
-    current.report <-
-      current.report[-1,] # remove the column headers e.g. Question Answer Points.Earned
-    
-    section.header <-
-      c(basename(report), "", "") # creates an exam title using the input filename
-    
-    current.report <-
-      rbind(section.header,
-            c("", "", ""),
-            column.labels,
-            current.report) # create a modified report
-    
-    # colnames(current.report) <- NULL # remove automatic column names
-    # current.report <- current.report[-(length(current.report) - 1), ] # remove the NA values in the last row of the modified report
-    
-    addWorksheet(wb, sheet.number) # add modified report to a worksheet
-    
-    # formats the questions with zero points to be more visible
-    zero.points.style <- createStyle(bgFill = "#FFC7CE")
-    conditionalFormatting(
-      wb,
-      sheet.number,
-      cols = 3,
-      rows = (4:nrow(current.report)),
-      type = "contains",
-      rule = "0",
-      style = zero.points.style
-    )
-    
-    writeData(wb, sheet = sheet.number, current.report, colNames = FALSE) # add the new worksheet to the workbook
-    sheet.number <-
-      sheet.number + 1 # increment sheet number for next report
-  }
-  
-  
-  saveWorkbook(wb, "Combined.xlsx", overwrite = TRUE) # writes a workbook containing all reports inputted
-}
-
 # outputs a report folder for the exam at the path exam_file
 ProcessExam <- function(exam_file) {
   exam.title <- exam_file
@@ -151,18 +90,22 @@ ProcessExam <- function(exam_file) {
     colnames(student.report) <-
       c("Question", "Answer", "Points Earned")
     
-    student.id <- as.character(report[i, "sis_id"])
-
+    student.id <- as.character(report[i, "sis_id"]) # gets student ID
+    
+    exam.title <- as.character(report[i, "section"]) # extracts class code and name
+    split.exam.title <- unlist(strsplit(exam.title, " ")) # creates character vector
+    class.name <- split.exam.title[-1] # removes class code
+    class.name <- paste(class.name, collapse = " ") # class name as character
+    class.name <- make.names(class.name)
+      
     write.table(
       student.report,
-      paste(student.id, "-", trimws(student.name), ".csv", sep = ""),
+      paste(student.id, "-", class.name, "-", trimws(student.name), ".csv", sep = ""),
       sep = ",",
       row.names = FALSE,
       na = ""
     )
-    
   }
-  
 }
 
 # function to open a file explorer from R
