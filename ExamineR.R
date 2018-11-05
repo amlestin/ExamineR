@@ -7,33 +7,52 @@ ChooseAndCombineReports <- function() {
   output.file.name <- basename(report.paths[1])
   output.file.name.vector <- unlist(strsplit(output.file.name, ""))
   period.index <- which(output.file.name.vector == ".")
-  extensionless.output.file.name <- substr(output.file.name, 1, period.index - 1)
-  first.and.last.names <- paste(unlist(strsplit(extensionless.output.file.name, " "))[1:2], collapse = " ")
-  output.file.name <- paste(first.and.last.names, "Combined Report.csv", collapse = "")
+  extensionless.output.file.name <-
+    substr(output.file.name, 1, period.index - 1)
+  first.and.last.names <-
+    paste(unlist(strsplit(extensionless.output.file.name, " "))[1:2], collapse = " ")
+  output.file.name <-
+    paste(first.and.last.names, "Combined Report.csv", collapse = "")
   
   column.labels <- c("Question",	"Answer",	"Points Earned")
   wb <- createWorkbook("Admin")
   sheet.number <- 1
   
   for (report in report.paths) {
-    current.report <- read.csv(report, stringsAsFactors = FALSE, header = FALSE) # read in a report
-    current.report <- current.report[-1, ] # remove the column headers e.g. Question Answer Points.Earned
+    current.report <-
+      read.csv(report, stringsAsFactors = FALSE, header = FALSE) # read in a report
+    current.report <-
+      current.report[-1,] # remove the column headers e.g. Question Answer Points.Earned
     
-    section.header <- c(basename(report), "", "") # creates an exam title using the input filename
+    section.header <-
+      c(basename(report), "", "") # creates an exam title using the input filename
     
-    current.report <- rbind(section.header, c("", "",""), column.labels, current.report) # create a modified report
+    current.report <-
+      rbind(section.header,
+            c("", "", ""),
+            column.labels,
+            current.report) # create a modified report
     
-   # colnames(current.report) <- NULL # remove automatic column names
-   # current.report <- current.report[-(length(current.report) - 1), ] # remove the NA values in the last row of the modified report
+    # colnames(current.report) <- NULL # remove automatic column names
+    # current.report <- current.report[-(length(current.report) - 1), ] # remove the NA values in the last row of the modified report
     
     addWorksheet(wb, sheet.number) # add modified report to a worksheet
     
     # formats the questions with zero points to be more visible
     zero.points.style <- createStyle(bgFill = "#FFC7CE")
-    conditionalFormatting(wb, sheet.number, cols = 3, rows = (4:nrow(current.report)),type = "contains", rule = "0", style = zero.points.style)
+    conditionalFormatting(
+      wb,
+      sheet.number,
+      cols = 3,
+      rows = (4:nrow(current.report)),
+      type = "contains",
+      rule = "0",
+      style = zero.points.style
+    )
     
     writeData(wb, sheet = sheet.number, current.report, colNames = FALSE) # add the new worksheet to the workbook
-    sheet.number <- sheet.number + 1 # increment sheet number for next report
+    sheet.number <-
+      sheet.number + 1 # increment sheet number for next report
   }
   
   
@@ -77,7 +96,8 @@ ProcessExam <- function(exam_file) {
   sorted.answers <- answers[order(questions)]
   
   # pre-allocate size of stripped questions vector
-  stripped.questions <- vector(mode = "character", length = length(sorted.questions))
+  stripped.questions <-
+    vector(mode = "character", length = length(sorted.questions))
   
   for (question.index in 1:length(sorted.questions)) {
     stripped.question <-
