@@ -88,7 +88,7 @@ CombineReports <- function() {
         current.report[-1,] # remove the column headers e.g. Question Answer Points.Earned
       
       section.header <-
-        c(basename(report), "", "") # creates an exam title using the input filename
+        c("", basename(report), "") # creates an exam title using the input filename
       
       current.report <-
         rbind(section.header,
