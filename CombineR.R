@@ -128,4 +128,6 @@ CombineReports <- function() {
 
 if (winDialog("okcancel", "Select the ExamineR directory created by ExamineR.R") == "OK") {
   CombineReports()
+  winDialog("ok", "Your combined reports are in the ExamineR folder")
 }
+
