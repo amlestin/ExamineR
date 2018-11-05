@@ -1,6 +1,9 @@
-ChooseCombineReports <- function() {
+ChooseAndCombineReports <- function() {
+  library(openxlsx) # library for reading and creating Excel XLSX files
+  
   report.paths <- choose.files()
   
+  # extracts the input filename and modifies it to create an output filename
   output.file.name <- basename(report.paths[1])
   output.file.name.vector <- unlist(strsplit(output.file.name, ""))
   period.index <- which(output.file.name.vector == ".")
@@ -8,25 +11,28 @@ ChooseCombineReports <- function() {
   first.and.last.names <- paste(unlist(strsplit(extensionless.output.file.name, " "))[1:2], collapse = " ")
   output.file.name <- paste(first.and.last.names, "Combined Report.csv", collapse = "")
   
-  
-  combined.report <- c()
   column.labels <- c("Question",	"Answer",	"Points Earned")
+  wb <- createWorkbook("Admin")
+  sheet.number <- 1
+  
   for (report in report.paths) {
+    current.report <- read.csv(report, stringsAsFactors = FALSE, header = FALSE) # read in a report
+    current.report <- current.report[-1, ] # remove the column headers
     
-    current.report <- read.csv(report, stringsAsFactors = FALSE, header = FALSE)
-    current.report <- current.report[-1, ]
-    section.header <- c(basename(report), "", "")
+    section.header <- c(basename(report), "", "") # creates an exam title using the input filename
     
-    combined.report <- rbind(
-      combined.report,
-      section.header,
-      column.labels,
-      current.report
-    )
+    current.report <- rbind(section.header, c("", "",""), column.labels, current.report) # create a modified report
+    
+    colnames(current.report) <- NULL # remove automatic column names
+    current.report[-(length(current.report) - 1), ] # remove the NA values in the last row of the modified report
+    
+    addWorksheet(wb, sheet.number) # add modified report to a worksheet
+    writeData(wb, sheet = sheet.number, current.report, colNames = FALSE) # add the new worksheet to the workbook
+    sheet.number <- sheet.number + 1 # increment sheet number for next report
   }
   
-  colnames(combined.report) <- NULL
-  write.csv(combined.report, output.file.name, row.names = FALSE)
+  
+  saveWorkbook(wb, "Combined.xlsx", TRUE) # writes a workbook containing all reports inputted
 }
 
 # outputs a report folder for the exam at the path exam_file
