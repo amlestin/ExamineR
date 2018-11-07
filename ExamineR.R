@@ -86,9 +86,9 @@ ProcessExam <- function(exam_file) {
       cbind(1:length(student.answers), student.answers, grades)
     
     student.report <-
-      rbind(student.report, c("Total Score:", "", student.score))
+      rbind(student.report, c("", "Total Score:", student.score))
     colnames(student.report) <-
-      c("Question", "Answer", "Points Earned")
+      c("#", "Answer", "Pts")
     
     student.id <-
       as.character(report[i, "sis_id"]) # gets student ID
