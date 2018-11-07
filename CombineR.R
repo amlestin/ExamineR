@@ -66,7 +66,7 @@ CombineReports <- function() {
     output.file.name <-
       paste(first.and.last.names, "Combined Report.xlsx", collapse = "")
     
-    column.labels <- c("Question",	"Answer",	"Points Earned")
+    column.labels <- c("#",	"Answer",	"Pts")
     wb <- createWorkbook("Admin")
     sheet.number <- 1
     
