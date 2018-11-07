@@ -66,10 +66,16 @@ ProcessExam <- function(exam_file) {
     student.answers <- c()
     grades <- c()
     
+    question.numbers <- c()
+    
     for (j in 1:length(sorted.questions)) {
       answer.index <- which(colnames(report) == sorted.questions[j])
-      
       grade <- report[i, answer.index + 1]
+      
+      if (grade != "0") {
+        next
+      }
+      question.numbers <- c(question.numbers, j)
       
       grades <- c(grades, grade)
       
@@ -80,16 +86,18 @@ ProcessExam <- function(exam_file) {
     }
     
     student.name <- as.character(report[i, "name"])
-    
     student.roster <- c(student.roster, student.name)
     student.score <- as.character(report[i, "score"])
+    
     student.report <-
-      cbind(1:length(student.answers), student.answers, grades)
+      cbind(question.numbers, student.answers, grades)
     
     score.row <- c("", "Total Score:", student.score)
-    missed.pts.row <- c("", "Pts missed:", as.character(report[i, "n.incorrect"]))
-
-    student.report <- rbind(student.report, score.row, missed.pts.row)
+    missed.pts.row <-
+      c("", "Pts missed:", as.character(report[i, "n.incorrect"]))
+    
+    student.report <-
+      rbind(student.report, score.row, missed.pts.row)
     
     colnames(student.report) <-
       c("#", "Answer", "Pts")
