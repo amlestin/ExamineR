@@ -70,6 +70,7 @@ ProcessExam <- function(exam_file) {
       answer.index <- which(colnames(report) == sorted.questions[j])
       
       grade <- report[i, answer.index + 1]
+      
       grades <- c(grades, grade)
       
       new.answer <- as.character(report[i, answer.index])
@@ -85,8 +86,12 @@ ProcessExam <- function(exam_file) {
     student.report <-
       cbind(1:length(student.answers), student.answers, grades)
     
-    student.report <-
-      rbind(student.report, c("", "Total Score:", student.score))
+    score.row <- c("", "Total Score:", student.score)
+    missed.pts.row <- c("", "Pts missed:", as.character(report[i, "n.incorrect"]))
+    print(missed.pts.row)
+      
+    student.report <- rbind(student.report, score.row, missed.pts.row)
+    
     colnames(student.report) <-
       c("#", "Answer", "Pts")
     
