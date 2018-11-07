@@ -90,26 +90,27 @@ ProcessExam <- function(exam_file) {
     student.score <- as.character(report[i, "score"])
     
     student.report <-
-      cbind(question.numbers, student.answers, grades)
+      cbind(question.numbers, student.answers, rep(NA, length(question.numbers)))
     
     score.row <- c("", "Total Score:", student.score)
     missed.pts.row <-
       c("", "Pts missed:", as.character(report[i, "n.incorrect"]))
-    
-    student.report <-
+
+     student.report <-
       rbind(student.report, score.row, missed.pts.row)
     
     colnames(student.report) <-
-      c("#", "Answer", "Pts")
+      c("#", "Answer", "")
     
     student.id <-
       as.character(report[i, "sis_id"]) # gets student ID
+
     
-    exam.title <-
+    class.title <-
       as.character(report[i, "section"]) # extracts class code and name
-    split.exam.title <-
-      unlist(strsplit(exam.title, " ")) # creates character vector
-    class.name <- split.exam.title[-1] # removes class code
+    split.class.title <-
+      unlist(strsplit(class.title, " ")) # creates character vector
+    class.name <- split.class.title[-1] # removes class code
     class.name <-
       paste(class.name, collapse = " ") # class name as character
     class.name <- make.names(class.name)
@@ -130,6 +131,7 @@ ProcessExam <- function(exam_file) {
       na = ""
     )
   }
+  setwd("..")
 }
 
 # function to open a file explorer from R
@@ -151,14 +153,28 @@ if (.Platform['OS.type'] == "windows") {
   input.files <- file.choose()
 }
 
+
 # creates a report for each exam file selected by the user
-for (exam.count in 1:length(input.files)) {
+number.of.exam.files <- length(input.files)
+
+progress.bar <- winProgressBar(
+  title = "ExamineR Progress",
+  min = 0,
+  max = number.of.exam.files,
+  width = 300
+)
+
+for (exam.count in 1:number.of.exam.files) {
   current.exam <- input.files[exam.count]
   print(paste("Processing ", current.exam, "...", sep = ""))
   ProcessExam(current.exam)
-  print("Report processed. Check your input directory for the exam folder.")
-  OpenDir()
-}
+  setWinProgressBar(progress.bar, exam.count, title = paste(round(exam.count / number.of.exam.files *
+                                                           100, 0),
+                                                   "% done", sep = ""))
+}  
+close(progress.bar)
+OpenDir()
+
 
 
 formals(quit)$save <- formals(q)$save <- "no"
