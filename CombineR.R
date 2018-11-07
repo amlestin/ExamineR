@@ -97,8 +97,19 @@ CombineReports <- function() {
       current.report <-
         current.report[-1,] # remove the column headers e.g. Question Answer Points.Earned
       
+      split.report.name <-  unlist(strsplit(basename(report), "-"))
+      course.title <- split.report.name[2]
+      student.name <- split.report.name[3]
+      
+      course.title <- gsub("\\.", " ", course.title)
+      student.name <- gsub("\\.", " ", student.name)
+      student.name <- gsub("csv", "", student.name)
+      
+      
+      course.and.student.name <- paste(course.title, student.name, sep = " - ")
+      
       section.header <-
-        c("", basename(report), "") # creates an exam title using the input filename
+        c("", course.and.student.name, "") # creates an exam title using the input filename
       
       current.report <-
         rbind(section.header,
@@ -120,6 +131,13 @@ CombineReports <- function() {
               combined.report,
               colNames = FALSE) # add the new worksheet to the workbook
     
+   # style.right.align.scores <- createStyle(halign = "center")
+    # style.right.align.scores <- createStyle(fontColour = "blue", halign = "right", valign = "center")
+    # 
+    # conditionalFormatting(wb, sheet.number, cols=2, rows=1:nrow(combined.report), type = "contains", rule="Total Score:", style = style.right.align.scores)
+    # conditionalFormatting(wb, sheet.number, cols=2, rows=1:nrow(combined.report), type = "contains", rule="Pts missed:", style = style.right.align.scores)
+    # 
+    # 
     # resizes column widths to fit contents
     setColWidths(wb, sheet.number, cols = 1:3, widths = "auto")
     # makes sure sheet fits on one printable page
