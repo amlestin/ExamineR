@@ -74,7 +74,7 @@ CombineReports <- function() {
     output.file.name <-
       paste(first.and.last.names, "Combined Report.xlsx", collapse = "")
     
-    column.labels <- c("#",	"Answer",	"")
+    column.labels <- c("#",	"Student Response",	"")
     wb <- createWorkbook("Admin")
     sheet.number <- 1
     addWorksheet(wb, sheet.number) # add modified report to a worksheet
