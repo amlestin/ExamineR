@@ -88,8 +88,7 @@ ProcessExam <- function(exam_file) {
     
     score.row <- c("", "Total Score:", student.score)
     missed.pts.row <- c("", "Pts missed:", as.character(report[i, "n.incorrect"]))
-    print(missed.pts.row)
-      
+
     student.report <- rbind(student.report, score.row, missed.pts.row)
     
     colnames(student.report) <-
