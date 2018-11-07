@@ -85,7 +85,7 @@ CombineReports <- function() {
       current.report <-
         read.csv(report, stringsAsFactors = FALSE, header = FALSE) # read in a report
       current.report <-
-        current.report[-1,] # remove the column headers e.g. Question Answer Points.Earned
+        current.report[-1, ] # remove the column headers e.g. Question Answer Points.Earned
       
       section.header <-
         c("", basename(report), "") # creates an exam title using the input filename
@@ -95,9 +95,6 @@ CombineReports <- function() {
               c("", "", ""),
               column.labels,
               current.report) # create a modified report
-      
-      # colnames(current.report) <- NULL # remove automatic column names
-      # current.report <- current.report[-(length(current.report) - 1), ] # remove the NA values in the last row of the modified report
       
       addWorksheet(wb, sheet.number) # add modified report to a worksheet
       
@@ -117,6 +114,15 @@ CombineReports <- function() {
                 sheet = sheet.number,
                 current.report,
                 colNames = FALSE) # add the new worksheet to the workbook
+      
+      # resizes column widths to fit contents
+      setColWidths(wb, sheet.number, cols = 1:3, widths = "auto")
+      # makes sure sheet fits on one printable page
+      pageSetup(wb,
+                sheet.number,
+                fitToWidth = TRUE,
+                fitToHeight = TRUE)
+      
       sheet.number <-
         sheet.number + 1 # increment sheet number for next report
     }
@@ -130,4 +136,3 @@ if (winDialog("okcancel", "Select the ExamineR directory created by ExamineR.R")
   CombineReports()
   winDialog("ok", "Your combined reports are in the ExamineR folder")
 }
-
