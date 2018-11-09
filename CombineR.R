@@ -74,7 +74,8 @@ CombineReports <- function() {
     output.file.name <-
       paste(first.and.last.names, "Combined Report.xlsx", collapse = "")
     
-    column.labels <- c("#",	"Student Response",	"")
+    column.labels <- c("Q#", "Student Response",	"")
+
     wb <- createWorkbook("Admin")
     sheet.number <- 1
     addWorksheet(wb, sheet.number) # add modified report to a worksheet
@@ -113,7 +114,6 @@ CombineReports <- function() {
       
       current.report <-
         rbind(section.header,
-              c("", "", ""),
               column.labels,
               current.report) # create a modified report
       if (length(combined.report) == 0) {
@@ -121,7 +121,7 @@ CombineReports <- function() {
           rbind(combined.report, current.report)
       } else {
         combined.report <-
-          rbind(combined.report, "", "", current.report)
+          rbind(combined.report, "", current.report)
       }
       
     }
@@ -144,7 +144,7 @@ CombineReports <- function() {
     pageSetup(wb,
               sheet.number,
               fitToWidth = TRUE,
-              fitToHeight = TRUE)
+              fitToHeight = FALSE)
     
     saveWorkbook(wb, output.file.name, overwrite = TRUE) # writes a workbook containing all reports inputted
     
