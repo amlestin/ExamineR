@@ -92,19 +92,23 @@ ProcessExam <- function(exam_file) {
     student.report <-
       cbind(question.numbers, student.answers, rep(NA, length(question.numbers)))
     
-    score.row <- c("", "Total Score:", student.score)
-    missed.pts.row <-
-      c("", "Pts missed:", as.character(report[i, "n.incorrect"]))
-
-     student.report <-
-      rbind(student.report, score.row, missed.pts.row)
+    raw.score.text <- paste("Raw Score", student.score, sep = " = ")
+    pts.missed.text <-
+      paste ("Pts Missed", as.character(report[i, "n.incorrect"]), sep = " = ")
+    
+    raw.score.row <- c("", raw.score.text, "")
+    pts.missed.row <-
+      c("", pts.missed.text, "")
+    
+    student.report <-
+      rbind(student.report, raw.score.row, pts.missed.row)
     
     colnames(student.report) <-
-      c("#", "Student Response", "")
+      c("Q#", "Student Response",	"")
     
     student.id <-
       as.character(report[i, "sis_id"]) # gets student ID
-
+    
     
     class.title <-
       as.character(report[i, "section"]) # extracts class code and name
@@ -168,10 +172,13 @@ for (exam.count in 1:number.of.exam.files) {
   current.exam <- input.files[exam.count]
   print(paste("Processing ", current.exam, "...", sep = ""))
   ProcessExam(current.exam)
-  setWinProgressBar(progress.bar, exam.count, title = paste(round(exam.count / number.of.exam.files *
-                                                           100, 0),
-                                                   "% done", sep = ""))
-}  
+  setWinProgressBar(progress.bar, exam.count, title = paste(
+    round(exam.count / number.of.exam.files *
+            100, 0),
+    "% done",
+    sep = ""
+  ))
+}
 close(progress.bar)
 OpenDir()
 
