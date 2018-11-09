@@ -47,7 +47,9 @@ FindReportsById <- function(path.to.examiner.folder) {
 }
 
 CombineReports <- function() {
-  path.to.examiner.folder <- choose.dir() #DELETE ME
+  path.to.examiner.folder <- choose.dir()
+  # Mac version
+  # path.to.examiner.folder <- .rs.api.selectDirectory()
   id.to.reports.map <- FindReportsById(path.to.examiner.folder)
   
   for (i in 1:length(names(id.to.reports.map))) {
