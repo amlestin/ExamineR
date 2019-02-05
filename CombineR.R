@@ -51,8 +51,16 @@ CombineReports <- function() {
   # Mac version
   # path.to.examiner.folder <- .rs.api.selectDirectory()
   id.to.reports.map <- FindReportsById(path.to.examiner.folder)
+  number.of.students <- length(names(id.to.reports.map))
   
-  for (i in 1:length(names(id.to.reports.map))) {
+  progress.bar <- winProgressBar(
+    title = "CombineR Progress",
+    min = 0,
+    max = number.of.students,
+    width = 300
+  )
+  
+  for (i in 1:number.of.students) {
     report.paths <- id.to.reports.map[[i]]
     
     #report.paths <- paths.to.reports
@@ -68,9 +76,11 @@ CombineReports <- function() {
     output.file.name <-
       paste(first.and.last.names, "Combined Report.xlsx", collapse = "")
     
-    column.labels <- c("#",	"Answer",	"Pts")
+    column.labels <- c("Q#", "Student Response",	"")
+
     wb <- createWorkbook("Admin")
     sheet.number <- 1
+    addWorksheet(wb, sheet.number) # add modified report to a worksheet
     
     meta.report.paths <- report.paths
     meta.report.paths <-
@@ -83,58 +93,79 @@ CombineReports <- function() {
     
     report.paths <- sorted.report.paths
     
+    combined.report <- c()
     for (report in report.paths) {
       current.report <-
         read.csv(report, stringsAsFactors = FALSE, header = FALSE) # read in a report
       current.report <-
-        current.report[-1, ] # remove the column headers e.g. Question Answer Points.Earned
+        current.report[-1,] # remove the column headers e.g. Question Answer Points.Earned
+      
+      split.report.name <-  unlist(strsplit(basename(report), "-"))
+      course.title <- split.report.name[2]
+      student.name <- split.report.name[3]
+      
+      course.title <- gsub("\\.", " ", course.title)
+      student.name <- gsub("\\.", " ", student.name)
+      student.name <- gsub("csv", "", student.name)
+      
+      
+      course.and.student.name <- paste(course.title, student.name, sep = " - ")
       
       section.header <-
-        c("", basename(report), "") # creates an exam title using the input filename
+        c("", course.and.student.name, "") # creates an exam title using the input filename
       
       current.report <-
         rbind(section.header,
-              c("", "", ""),
               column.labels,
               current.report) # create a modified report
+      if (length(combined.report) == 0) {
+        combined.report <-
+          rbind(combined.report, current.report)
+      } else {
+        combined.report <-
+          rbind(combined.report, "", current.report)
+      }
       
-      addWorksheet(wb, sheet.number) # add modified report to a worksheet
-      
-      # formats the questions with zero points to be more visible
-      zero.points.style <- createStyle(bgFill = "#FFC7CE")
-      conditionalFormatting(
-        wb,
-        sheet.number,
-        cols = 3,
-        rows = (4:nrow(current.report)),
-        type = "contains",
-        rule = "0",
-        style = zero.points.style
-      )
-      
-      writeData(wb,
-                sheet = sheet.number,
-                current.report,
-                colNames = FALSE) # add the new worksheet to the workbook
-      
-      # resizes column widths to fit contents
-      setColWidths(wb, sheet.number, cols = 1:3, widths = "auto")
-      # makes sure sheet fits on one printable page
-      pageSetup(wb,
-                sheet.number,
-                fitToWidth = TRUE,
-                fitToHeight = TRUE)
-      
-      sheet.number <-
-        sheet.number + 1 # increment sheet number for next report
     }
     
+    writeData(wb,
+              sheet = sheet.number,
+              combined.report,
+              colNames = FALSE) # add the new worksheet to the workbook
+    
+   # style.right.align.scores <- createStyle(halign = "center")
+    # style.right.align.scores <- createStyle(fontColour = "blue", halign = "right", valign = "center")
+    # 
+    # conditionalFormatting(wb, sheet.number, cols=2, rows=1:nrow(combined.report), type = "contains", rule="Total Score:", style = style.right.align.scores)
+    # conditionalFormatting(wb, sheet.number, cols=2, rows=1:nrow(combined.report), type = "contains", rule="Pts missed:", style = style.right.align.scores)
+    # 
+    # 
+    # resizes column widths to fit contents
+    setColWidths(wb, sheet.number, cols = 1:3, widths = "auto")
+    # makes sure sheet fits on one printable page
+    pageSetup(wb,
+              sheet.number,
+              fitToWidth = TRUE,
+              fitToHeight = FALSE)
     
     saveWorkbook(wb, output.file.name, overwrite = TRUE) # writes a workbook containing all reports inputted
+    
+    setWinProgressBar(progress.bar, i, title = paste(round(i / number.of.students *
+                                                             100, 0),
+                                                     "% done", sep = ""))
+  }
+  close(progress.bar)
+}
+
+OpenDir <- function(dir = getwd()) {
+  if (.Platform['OS.type'] == "windows") {
+    shell.exec(dir)
+  } else {
+    system("open .")
   }
 }
 
 if (winDialog("okcancel", "Select the ExamineR directory created by ExamineR.R") == "OK") {
   CombineReports()
-  winDialog("ok", "Your combined reports are in the ExamineR folder")
+  OpenDir()
 }

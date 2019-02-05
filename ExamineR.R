@@ -66,10 +66,16 @@ ProcessExam <- function(exam_file) {
     student.answers <- c()
     grades <- c()
     
+    question.numbers <- c()
+    
     for (j in 1:length(sorted.questions)) {
       answer.index <- which(colnames(report) == sorted.questions[j])
-      
       grade <- report[i, answer.index + 1]
+      
+      if (grade != "0") {
+        next
+      }
+      question.numbers <- c(question.numbers, j)
       
       grades <- c(grades, grade)
       
@@ -80,28 +86,35 @@ ProcessExam <- function(exam_file) {
     }
     
     student.name <- as.character(report[i, "name"])
-    
     student.roster <- c(student.roster, student.name)
     student.score <- as.character(report[i, "score"])
-    student.report <-
-      cbind(1:length(student.answers), student.answers, grades)
     
-    score.row <- c("", "Total Score:", student.score)
-    missed.pts.row <- c("", "Pts missed:", as.character(report[i, "n.incorrect"]))
-
-    student.report <- rbind(student.report, score.row, missed.pts.row)
+    student.report <-
+      cbind(question.numbers, student.answers, rep(NA, length(question.numbers)))
+    
+    raw.score.text <- paste("Raw Score", student.score, sep = " = ")
+    pts.missed.text <-
+      paste ("Pts Missed", as.character(report[i, "n.incorrect"]), sep = " = ")
+    
+    raw.score.row <- c("", raw.score.text, "")
+    pts.missed.row <-
+      c("", pts.missed.text, "")
+    
+    student.report <-
+      rbind(student.report, raw.score.row, pts.missed.row)
     
     colnames(student.report) <-
-      c("#", "Answer", "Pts")
+      c("Q#", "Student Response",	"")
     
     student.id <-
       as.character(report[i, "sis_id"]) # gets student ID
     
-    exam.title <-
+    
+    class.title <-
       as.character(report[i, "section"]) # extracts class code and name
-    split.exam.title <-
-      unlist(strsplit(exam.title, " ")) # creates character vector
-    class.name <- split.exam.title[-1] # removes class code
+    split.class.title <-
+      unlist(strsplit(class.title, " ")) # creates character vector
+    class.name <- split.class.title[-1] # removes class code
     class.name <-
       paste(class.name, collapse = " ") # class name as character
     class.name <- make.names(class.name)
@@ -122,12 +135,12 @@ ProcessExam <- function(exam_file) {
       na = ""
     )
   }
+  setwd("..")
 }
 
-# function to open a file explorer from R
-# https://stackoverflow.com/questions/12135732/how-to-open-working-directory-directly-from-r-console
-
 OpenDir <- function(dir = getwd()) {
+  # function to open a file explorer from R
+  # https://stackoverflow.com/questions/12135732/how-to-open-working-directory-directly-from-r-console
   if (.Platform['OS.type'] == "windows") {
     shell.exec(dir)
   } else {
@@ -143,15 +156,39 @@ if (.Platform['OS.type'] == "windows") {
   input.files <- file.choose()
 }
 
+
 # creates a report for each exam file selected by the user
-for (exam.count in 1:length(input.files)) {
+number.of.exam.files <- length(input.files)
+
+# initializes a progress bar object
+progress.bar <- winProgressBar(
+  title = "ExamineR Progress",
+  min = 0,
+  max = number.of.exam.files,
+  width = 300
+)
+
+# processes all exam files selected by the user
+# increments the progress bar after each exam
+for (exam.count in 1:number.of.exam.files) {
   current.exam <- input.files[exam.count]
   print(paste("Processing ", current.exam, "...", sep = ""))
   ProcessExam(current.exam)
-  print("Report processed. Check your input directory for the exam folder.")
-  OpenDir()
+  setWinProgressBar(progress.bar, exam.count, title = paste(
+    round(exam.count / number.of.exam.files *
+            100, 0),
+    "% done",
+    sep = ""
+  ))
 }
 
+# removes the progress bar object
+close(progress.bar)
 
+# opens the folder where the reports are saved, i.e., the current working directory
+OpenDir()
+
+
+# exits the program without prompting for user confirmation
 formals(quit)$save <- formals(q)$save <- "no"
 q()
