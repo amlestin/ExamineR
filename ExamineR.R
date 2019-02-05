@@ -138,10 +138,9 @@ ProcessExam <- function(exam_file) {
   setwd("..")
 }
 
-# function to open a file explorer from R
-# https://stackoverflow.com/questions/12135732/how-to-open-working-directory-directly-from-r-console
-
 OpenDir <- function(dir = getwd()) {
+  # function to open a file explorer from R
+  # https://stackoverflow.com/questions/12135732/how-to-open-working-directory-directly-from-r-console
   if (.Platform['OS.type'] == "windows") {
     shell.exec(dir)
   } else {
@@ -161,6 +160,7 @@ if (.Platform['OS.type'] == "windows") {
 # creates a report for each exam file selected by the user
 number.of.exam.files <- length(input.files)
 
+# initializes a progress bar object
 progress.bar <- winProgressBar(
   title = "ExamineR Progress",
   min = 0,
@@ -168,6 +168,8 @@ progress.bar <- winProgressBar(
   width = 300
 )
 
+# processes all exam files selected by the user
+# increments the progress bar after each exam
 for (exam.count in 1:number.of.exam.files) {
   current.exam <- input.files[exam.count]
   print(paste("Processing ", current.exam, "...", sep = ""))
@@ -179,10 +181,14 @@ for (exam.count in 1:number.of.exam.files) {
     sep = ""
   ))
 }
+
+# removes the progress bar object
 close(progress.bar)
+
+# opens the folder where the reports are saved, i.e., the current working directory
 OpenDir()
 
 
-
+# exits the program without prompting for user confirmation
 formals(quit)$save <- formals(q)$save <- "no"
 q()
