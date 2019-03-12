@@ -88,23 +88,22 @@ ProcessExam <- function(exam_file) {
     student.name <- as.character(report[i, "name"])
     student.roster <- c(student.roster, student.name)
     student.score <- as.character(report[i, "score"])
+    score.points <- paste("Raw Score", student.score, sep = " = ")
+    points.missed <-
+      paste ("", as.character(report[i, ""]), sep = " ")
     
     student.report <-
       cbind(question.numbers, student.answers, rep(NA, length(question.numbers)))
     
-    raw.score.text <- paste("Raw Score", student.score, sep = " = ")
-    pts.missed.text <-
-      paste ("Pts Missed", as.character(report[i, "n.incorrect"]), sep = " = ")
-    
-    raw.score.row <- c("", raw.score.text, "")
-    pts.missed.row <-
-      c("", pts.missed.text, "")
+    score.row <- c("", score.points, "")
+    missed.pts.row <-
+      c("", points.missed, "")
     
     student.report <-
-      rbind(student.report, raw.score.row, pts.missed.row)
+      rbind(student.report, score.row, missed.pts.row)
     
     colnames(student.report) <-
-      c("Q#", "Student Response",	"")
+      c("#", "Student Response", "")
     
     student.id <-
       as.character(report[i, "sis_id"]) # gets student ID
@@ -160,7 +159,7 @@ if (.Platform['OS.type'] == "windows") {
 # creates a report for each exam file selected by the user
 number.of.exam.files <- length(input.files)
 
-# initializes a progress bar object
+# initializes a progress bar object window
 progress.bar <- winProgressBar(
   title = "ExamineR Progress",
   min = 0,
@@ -182,13 +181,11 @@ for (exam.count in 1:number.of.exam.files) {
   ))
 }
 
-# removes the progress bar object
+# removes the progress bar object window
 close(progress.bar)
-
-# opens the folder where the reports are saved, i.e., the current working directory
 OpenDir()
 
 
-# exits the program without prompting for user confirmation
+
 formals(quit)$save <- formals(q)$save <- "no"
 q()
