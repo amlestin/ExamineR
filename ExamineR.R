@@ -124,6 +124,14 @@ ProcessExam <- function(exam_file) {
     # combine question numbers and answers
     student.report <-
       cbind(question.numbers, student.answers, rep(NA, length(question.numbers)))
+<<<<<<< HEAD
+=======
+    
+    score.row <- c("", score.points, "")
+    missed.pts.row <-
+      c("", points.missed, "")
+    
+>>>>>>> master
     colnames(student.report) <-
       c("#", "Student Response", "")
     
@@ -151,6 +159,7 @@ ProcessExam <- function(exam_file) {
     course.name <-
       make.names(course.name) # makes syntactically valid name from course.name
     
+<<<<<<< HEAD
     student.report <-
       rbind(
         c(student.id, "", ""),
@@ -160,10 +169,36 @@ ProcessExam <- function(exam_file) {
         score.row,
         missed.pts.row
       )
+=======
+    class.title <-
+      as.character(report[i, "section"]) # extracts class code and name
+    split.class.title <-
+      unlist(strsplit(class.title, " ")) # creates character vector
+    class.name <- split.class.title[-1] # removes class code
+    class.name <-
+      paste(class.name, collapse = " ") # class name as character
+    class.name <- make.names(class.name)
+>>>>>>> master
+    
+    student.report <-
+      rbind(c( student.id, "",""), c(class.name, "",""), c(trimws(student.name), "","") , student.report, score.row, missed.pts.row)
     
     write.table(
       student.report,
+<<<<<<< HEAD
       paste(student.name, "-", student.id,
+=======
+      # paste(
+      #   student.id,
+      #   "-",
+      #   class.name,
+      #   "-",
+      #   trimws(student.name),
+      #   ".csv",
+      #   sep = ""
+      # ),
+      paste(student.id,
+>>>>>>> master
             ".csv",
             sep = ""),
       sep = ",",
@@ -214,6 +249,7 @@ ExamineR <- function() {
   setwd("..")
 }
 
+<<<<<<< HEAD
 FindReportsById <- function(path.to.examiner.folder) {
   setwd(path.to.examiner.folder)
   
@@ -390,6 +426,43 @@ if ( (which(list.files() == "ExamineR Reports") > 0 ) == TRUE) {
   CombineReports()
   OpenDir()
 }
+=======
+if (.Platform['OS.type'] == "windows") {
+  input.files <- choose.files()
+} else {
+  # only supports one file at a time, in the future may loop through files directory with list.dir
+  input.files <- file.choose()
+}
+
+# creates a report for each exam file selected by the user
+number.of.exam.files <- length(input.files)
+
+# initializes a progress bar object window
+progress.bar <- winProgressBar(
+  title = "ExamineR Progress",
+  min = 0,
+  max = number.of.exam.files,
+  width = 300
+)
+
+# processes all exam files selected by the user
+# increments the progress bar after each exam
+for (exam.count in 1:number.of.exam.files) {
+  current.exam <- input.files[exam.count]
+  print(paste("Processing ", current.exam, "...", sep = ""))
+  ProcessExam(current.exam)
+  setWinProgressBar(progress.bar, exam.count, title = paste(
+    round(exam.count / number.of.exam.files *
+            100, 0),
+    "% done",
+    sep = ""
+  ))
+}
+
+# removes the progress bar object window
+close(progress.bar)
+OpenDir()
+>>>>>>> master
 
 # quit without warning
 formals(quit)$save <- formals(q)$save <- "no"
