@@ -19,15 +19,8 @@ FindReportsById <- function(path.to.examiner.folder) {
     for (report in files.in.dir) {
       path.to.current.report <- report
       
-      text.with.student.id <-
-        unlist(strsplit(path.to.current.report, "-"))[1]
-      student.id <-
-        substr(
-          text.with.student.id,
-          nchar(text.with.student.id) - 9 + 1,
-          nchar(text.with.student.id)
-        )
-      
+      text.with.student.id <- gsub("./", "", path.to.current.report)
+      student.id <- gsub(".csv", "", text.with.student.id)
       
       long.path.to.current.report <-
         paste(dir, substr(

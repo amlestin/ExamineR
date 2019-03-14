@@ -99,15 +99,11 @@ ProcessExam <- function(exam_file) {
     missed.pts.row <-
       c("", points.missed, "")
     
-    student.report <-
-      rbind(student.report, score.row, missed.pts.row)
-    
     colnames(student.report) <-
       c("#", "Student Response", "")
     
     student.id <-
       as.character(report[i, "sis_id"]) # gets student ID
-    
     
     class.title <-
       as.character(report[i, "section"]) # extracts class code and name
@@ -118,17 +114,23 @@ ProcessExam <- function(exam_file) {
       paste(class.name, collapse = " ") # class name as character
     class.name <- make.names(class.name)
     
+    student.report <-
+      rbind(c( student.id, "",""), c(class.name, "",""), c(trimws(student.name), "","") , student.report, score.row, missed.pts.row)
+    
     write.table(
       student.report,
-      paste(
-        student.id,
-        "-",
-        class.name,
-        "-",
-        trimws(student.name),
-        ".csv",
-        sep = ""
-      ),
+      # paste(
+      #   student.id,
+      #   "-",
+      #   class.name,
+      #   "-",
+      #   trimws(student.name),
+      #   ".csv",
+      #   sep = ""
+      # ),
+      paste(student.id,
+            ".csv",
+            sep = ""),
       sep = ",",
       row.names = FALSE,
       na = ""
@@ -147,14 +149,12 @@ OpenDir <- function(dir = getwd()) {
   }
 }
 
-
 if (.Platform['OS.type'] == "windows") {
   input.files <- choose.files()
 } else {
   # only supports one file at a time, in the future may loop through files directory with list.dir
   input.files <- file.choose()
 }
-
 
 # creates a report for each exam file selected by the user
 number.of.exam.files <- length(input.files)
@@ -185,7 +185,6 @@ for (exam.count in 1:number.of.exam.files) {
 close(progress.bar)
 OpenDir()
 
-
-
+# quit without warning
 formals(quit)$save <- formals(q)$save <- "no"
 q()
