@@ -19,15 +19,11 @@ FindReportsById <- function(path.to.examiner.folder) {
     for (report in files.in.dir) {
       path.to.current.report <- report
       
+      text.with.student.id <- gsub("./", "", path.to.current.report)
       text.with.student.id <-
-        unlist(strsplit(path.to.current.report, "-"))[1]
-      student.id <-
-        substr(
-          text.with.student.id,
-          nchar(text.with.student.id) - 9 + 1,
-          nchar(text.with.student.id)
-        )
+        unlist(strsplit(text.with.student.id, "-"))[2]
       
+      student.id <- gsub(".csv", "", text.with.student.id)
       
       long.path.to.current.report <-
         paste(dir, substr(
@@ -66,18 +62,22 @@ CombineReports <- function() {
     #report.paths <- paths.to.reports
     # extracts the input filename and modifies it to create an output filename
     output.file.name <- basename(report.paths[1])
-    output.file.name.vector <-
-      unlist(strsplit(output.file.name, ""))
-    period.index <- max(which(output.file.name.vector == "."))
+    
+    # output.file.name.vector <-
+    #   unlist(strsplit(output.file.name, ""))
+    # period.index <- max(which(output.file.name.vector == "."))
+    # extensionless.output.file.name <-
+    #   substr(output.file.name, 1, period.index - 1)
+    
     extensionless.output.file.name <-
-      substr(output.file.name, 1, period.index - 1)
+      gsub(".csv", "", output.file.name)
     first.and.last.names <-
-      paste(unlist(strsplit(extensionless.output.file.name, "-"))[3], collapse = " ")
+      paste(unlist(strsplit(extensionless.output.file.name, "-"))[1], collapse = " ")
     output.file.name <-
       paste(first.and.last.names, "Combined Report.xlsx", collapse = "")
     
     column.labels <- c("Q#", "Student Response",	"")
-
+    
     wb <- createWorkbook("Admin")
     sheet.number <- 1
     addWorksheet(wb, sheet.number) # add modified report to a worksheet
@@ -95,24 +95,33 @@ CombineReports <- function() {
     
     combined.report <- c()
     for (report in report.paths) {
-      current.report <-
-        read.csv(report, stringsAsFactors = FALSE, header = FALSE) # read in a report
-      current.report <-
-        current.report[-1,] # remove the column headers e.g. Question Answer Points.Earned
+      tryCatch({
+        current.report <-
+          read.csv(
+            report,
+            stringsAsFactors = FALSE,
+            header = FALSE,
+            fileEncoding = "UTF-8"
+          ) # read in a report
+      }, warning = function(w) {
+        print("Warning given when reading CSV as UTF-8")
+        current.report <-
+          read.csv(report,
+                   stringsAsFactors = FALSE,
+                   header = FALSE) # read in a report
+      })
       
-      split.report.name <-  unlist(strsplit(basename(report), "-"))
-      course.title <- split.report.name[2]
-      student.name <- split.report.name[3]
-      
-      course.title <- gsub("\\.", " ", course.title)
-      student.name <- gsub("\\.", " ", student.name)
-      student.name <- gsub("csv", "", student.name)
-      
-      
-      course.and.student.name <- paste(course.title, student.name, sep = " - ")
+      course.title <-
+        gsub("\\.", " ", as.character(current.report[4,][1]))
+      student.name <- as.character(current.report[3,][1])
+      course.and.student.name <-
+        paste(course.title, student.name, sep = " - ")
       
       section.header <-
         c("", course.and.student.name, "") # creates an exam title using the input filename
+      
+      current.report <-
+        current.report[-seq(1, 4),] # remove the column headers e.g. Question Answer Points.Earned
       
       current.report <-
         rbind(section.header,
@@ -133,13 +142,13 @@ CombineReports <- function() {
               combined.report,
               colNames = FALSE) # add the new worksheet to the workbook
     
-   # style.right.align.scores <- createStyle(halign = "center")
+    # style.right.align.scores <- createStyle(halign = "center")
     # style.right.align.scores <- createStyle(fontColour = "blue", halign = "right", valign = "center")
-    # 
+    #
     # conditionalFormatting(wb, sheet.number, cols=2, rows=1:nrow(combined.report), type = "contains", rule="Total Score:", style = style.right.align.scores)
     # conditionalFormatting(wb, sheet.number, cols=2, rows=1:nrow(combined.report), type = "contains", rule="Pts missed:", style = style.right.align.scores)
-    # 
-    # 
+    #
+    #
     # resizes column widths to fit contents
     setColWidths(wb, sheet.number, cols = 1:3, widths = "auto")
     # makes sure sheet fits on one printable page
