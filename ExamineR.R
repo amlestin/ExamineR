@@ -274,10 +274,19 @@ FindReportsById <- function(path.to.examiner.folder) {
   
   return(id.to.reports.map)
 }
-
-CreateReport <- function(report) {
-  report.paths <- report
+ 
+SortReportPaths <- function(report.paths) {
+  meta.report.paths <- report.paths
+  meta.report.paths <-
+    gsub("Medical", meta.report.paths, replacement = "")
+  meta.report.paths <-
+    gsub("Basic", meta.report.paths, replacement = "")
+  sorted.indices.paths <-
+    sort(meta.report.paths, index.return = TRUE)$ix
+  sorted.report.paths <- report.paths[sorted.indices.paths]
+}
   
+CreateReport <- function(report.paths) {
   # extracts the input filename and modifies it to create an output filename
   output.file.name <- basename(report.paths[1])
   extensionless.output.file.name <-
@@ -292,17 +301,8 @@ CreateReport <- function(report) {
   wb <- createWorkbook("Admin")
   sheet.number <- 1
   addWorksheet(wb, sheet.number) # add modified report to a worksheet
-  
-  meta.report.paths <- report.paths
-  meta.report.paths <-
-    gsub("Medical", meta.report.paths, replacement = "")
-  meta.report.paths <-
-    gsub("Basic", meta.report.paths, replacement = "")
-  sorted.indices.paths <-
-    sort(meta.report.paths, index.return = TRUE)$ix
-  sorted.report.paths <- report.paths[sorted.indices.paths]
-  
-  report.paths <- sorted.report.paths
+ 
+  report.paths <- SortReportPaths(report.paths)
   
   combined.report <- c()
   for (report in report.paths) {
