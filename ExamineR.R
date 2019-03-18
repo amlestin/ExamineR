@@ -60,8 +60,7 @@ ProcessExam <- function(exam_file) {
   
   # prompts the user so the questions can be sorted by the number in their respective columns or kept as given
   dialog.message <- paste("Is", exam.name, "randomized?")
-  #  is.randomized = ifelse(winDialog(type = "yesno", dialog.message) == "YES", TRUE, FALSE)
-  is.randomized = TRUE
+  is.randomized <- ifelse(winDialog(type = "yesno", dialog.message) == "YES", TRUE, FALSE)
   if (is.randomized == TRUE) {
     sorted.questions <- questions[order(questions)]
     sorted.answers <- answers[order(questions)]
