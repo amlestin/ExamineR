@@ -23,7 +23,7 @@ ProcessExam <- function(exam_file) {
   report <- tryCatch({
     read.csv(exam.title, fileEncoding = "UTF-8")
   }, warning = function(w) {
-    print("Warning given when reading CSV as UTF-8")
+    print("Reading CSV with default encoding")
     read.csv(exam.title)
   })
   
@@ -122,23 +122,23 @@ ProcessExam <- function(exam_file) {
       student.answers <- c(student.answers, answer)
     }
     
+    if (length(student.answers) == 0) {
+      question.numbers <- "ALL"
+      student.answers <- "CORRECT"
+    }
+    
     # combine question numbers and answers
     student.report <-
-      cbind(question.numbers, student.answers, rep(NA, length(question.numbers)))
-    
-    colnames(student.report) <-
-      c("#", "Student Response", "")
+      cbind(question.numbers, student.answers)
+
+    colnames(student.report) <- NULL
     
     student.name <- as.character(report[i, "name"])
     student.name <- trimws(student.name)
     student.score <- as.character(report[i, "score"])
     
     score.string <- paste("Raw Score", student.score, sep = " = ")
-    points.missed.string <-
-      paste ("", as.character(report[i, ""]), sep = " ")
-    score.row <- c("", score.string, "")
-    missed.pts.row <-
-      c("", points.missed.string, "")
+    score.row <- c("", score.string)
     
     student.id <-
       as.character(report[i, "sis_id"]) # gets student ID
@@ -150,17 +150,15 @@ ProcessExam <- function(exam_file) {
       split.course.title[-1] # removes course code from course.title
     course.name <-
       paste(course.name, collapse = " ") # course name as character
-    course.name <-
-      make.names(course.name) # makes syntactically valid name from course.name
     
     student.report <-
       rbind(
-        c(student.id, "", ""),
-        c(student.name, "", ""),
-        c(course.name, "", ""),
+        c(student.id, ""),
+        c(student.name, ""),
+        c(course.name, ""),
+        c("#", "Student Response"),
         student.report,
-        score.row,
-        missed.pts.row
+        score.row
       )
     
     class.title <-
@@ -185,8 +183,8 @@ ProcessExam <- function(exam_file) {
       output.file.name,
       sep = ",",
       row.names = FALSE,
-      na = "",
-      fileEncoding = "UTF-8"
+      col.names = FALSE,
+      na = ""
     )
   }
   setwd("..")
@@ -277,16 +275,8 @@ FindReportsById <- function(path.to.examiner.folder) {
 CreateReport <- function(report) {
   report.paths <- report
   
-  #report.paths <- paths.to.reports
   # extracts the input filename and modifies it to create an output filename
   output.file.name <- basename(report.paths[1])
-  
-  # output.file.name.vector <-
-  #   unlist(strsplit(output.file.name, ""))
-  # period.index <- max(which(output.file.name.vector == "."))
-  # extensionless.output.file.name <-
-  #   substr(output.file.name, 1, period.index - 1)
-  
   extensionless.output.file.name <-
     gsub(".csv", "", output.file.name)
   first.and.last.names <-
@@ -294,7 +284,7 @@ CreateReport <- function(report) {
   output.file.name <-
     paste(first.and.last.names, "Combined Report.xlsx", collapse = "")
   
-  column.labels <- c("Q#", "Student Response",	"")
+  column.labels <- c("Q#", "Student Response")
   
   wb <- createWorkbook("Admin")
   sheet.number <- 1
@@ -313,8 +303,7 @@ CreateReport <- function(report) {
   
   combined.report <- c()
   for (report in report.paths) {
-    tryCatch({
-      current.report <-
+    current.report <- tryCatch({
         read.csv(
           report,
           stringsAsFactors = FALSE,
@@ -322,21 +311,19 @@ CreateReport <- function(report) {
           fileEncoding = "UTF-8"
         ) # read in a report
     }, warning = function(w) {
-      print("Warning given when reading CSV as UTF-8")
-      current.report <-
+      print("Reading CSV as UTF-8")
         read.csv(report,
                  stringsAsFactors = FALSE,
                  header = FALSE) # read in a report
     })
     
-    course.title <-
-      gsub("\\.", " ", as.character(current.report[4, ][1]))
-    student.name <- as.character(current.report[3, ][1])
+    course.title <- as.character(current.report[3, ][1])
+    student.name <- as.character(current.report[2, ][1])
     course.and.student.name <-
       paste(course.title, student.name, sep = " - ")
     
     section.header <-
-      c("", course.and.student.name, "") # creates an exam title using the input filename
+      c("", course.and.student.name) # creates an exam title using the input filename
     
     current.report <-
       current.report[-seq(1, 4), ] # remove the column headers e.g. Question Answer Points.Earned
@@ -420,10 +407,12 @@ ExamineR()
 
 # combines the reports created by ExamineR if user clicks OK
 #if (winDialog("okcancel", "Select the ExamineR directory created by ExamineR.R") == "OK") {
-if ((which(list.files() == "ExamineR Reports") > 0) == TRUE) {
+if ( (length(which(list.files() == "ExamineR Reports")) > 0) == TRUE ) {
   setwd("ExamineR Reports")
   CombineReports()
   OpenDir()
+} else {
+  print("No ExamineR Reports directory found. Reports will not be combined.")
 }
 
 # quit without warning
