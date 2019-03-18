@@ -23,7 +23,7 @@ ProcessExam <- function(exam_file) {
   report <- tryCatch({
     read.csv(exam.title, fileEncoding = "UTF-8")
   }, warning = function(w) {
-    print("Reading CSV with default encoding")
+    print("Reading CSV using default encoding")
     read.csv(exam.title)
   })
   
@@ -311,7 +311,7 @@ CreateReport <- function(report) {
           fileEncoding = "UTF-8"
         ) # read in a report
     }, warning = function(w) {
-      print("Reading CSV as UTF-8")
+      print("Reading CSV using default encoding")
         read.csv(report,
                  stringsAsFactors = FALSE,
                  header = FALSE) # read in a report
