@@ -15,10 +15,30 @@ OpenDir <- function(dir = getwd()) {
   }
 }
 
-# outputs a report folder for the exam at the path exam_filei
-ProcessExam <- function(exam_file) {
-  exam.title <- exam_file
+# strips question from report column name
+StripQuestion <- function(question) {
+  stripped.question <-
+    unlist(strsplit(question, "\\."))[-1]
   
+  stripped.question.string <-
+    paste(stripped.question, collapse = ' ')
+  
+  stripped.question.string <-
+    unlist(strwrap(
+      stripped.question.string,
+      width = 20,
+      indent = 5,
+      simplify = FALSE
+    ))
+  
+  stripped.question.string <-
+    paste(stripped.question[-1], collapse = ' ')
+}
+# compiled version of StripQuestion
+cStripQuestion <- cmpfun(StripQuestion)
+
+# outputs a report folder for the exam at the path exam.file
+ProcessExam <- function(exam.title) {
   # tries to open Canvas file as UTF-8 unless there is a warning
   report <- tryCatch({
     read.csv(exam.title, fileEncoding = "UTF-8")
@@ -60,7 +80,8 @@ ProcessExam <- function(exam_file) {
   
   # prompts the user so the questions can be sorted by the number in their respective columns or kept as given
   dialog.message <- paste("Is", exam.name, "randomized?")
-  is.randomized <- ifelse(winDialog(type = "yesno", dialog.message) == "YES", TRUE, FALSE)
+  is.randomized <-
+    ifelse(winDialog(type = "yesno", dialog.message) == "YES", TRUE, FALSE)
   if (is.randomized == TRUE) {
     sorted.questions <- questions[order(questions)]
     sorted.answers <- answers[order(questions)]
@@ -74,26 +95,8 @@ ProcessExam <- function(exam_file) {
     vector(mode = "character", length = length(sorted.questions))
   
   # extracts vector of question strings from column names
-  for (question.index in 1:length(sorted.questions)) {
-    stripped.question <-
-      unlist(strsplit(sorted.questions[question.index], "\\."))[-1]
-    
-    stripped.question.string <-
-      paste(stripped.question, collapse = ' ')
-    
-    stripped.question.string <-
-      unlist(strwrap(
-        stripped.question.string,
-        width = 20,
-        indent = 5,
-        simplify = FALSE
-      ))
-    
-    stripped.question.string <-
-      paste(stripped.question[-1], collapse = ' ')
-    
-    stripped.questions[question.index] <- stripped.question.string
-  }
+  stripped.questions <- sapply(sorted.questions, cStripQuestion)
+  unname(stripped.questions)
   
   number.of.students <- nrow(report)
   reports <- vector(mode = "list", length = number.of.students)
@@ -130,7 +133,7 @@ ProcessExam <- function(exam_file) {
     # combine question numbers and answers
     student.report <-
       cbind(question.numbers, student.answers)
-
+    
     colnames(student.report) <- NULL
     
     student.name <- as.character(report[i, "name"])
@@ -189,7 +192,7 @@ ProcessExam <- function(exam_file) {
   }
   setwd("..")
 }
-# compiled version of the above
+# compiled version of Process Exam
 cProcessExam <- cmpfun(ProcessExam)
 
 ExamineR <- function() {
@@ -304,21 +307,21 @@ CreateReport <- function(report) {
   combined.report <- c()
   for (report in report.paths) {
     current.report <- tryCatch({
-        read.csv(
-          report,
-          stringsAsFactors = FALSE,
-          header = FALSE,
-          fileEncoding = "UTF-8"
-        ) # read in a report
+      read.csv(
+        report,
+        stringsAsFactors = FALSE,
+        header = FALSE,
+        fileEncoding = "UTF-8"
+      ) # read in a report
     }, warning = function(w) {
       print("Reading CSV using default encoding")
-        read.csv(report,
-                 stringsAsFactors = FALSE,
-                 header = FALSE) # read in a report
+      read.csv(report,
+               stringsAsFactors = FALSE,
+               header = FALSE) # read in a report
     })
     
-    course.title <- as.character(current.report[3, ][1])
-    student.name <- as.character(current.report[2, ][1])
+    course.title <- as.character(current.report[3,][1])
+    student.name <- as.character(current.report[2,][1])
     course.and.student.name <-
       paste(course.title, student.name, sep = " - ")
     
@@ -326,7 +329,7 @@ CreateReport <- function(report) {
       c("", course.and.student.name) # creates an exam title using the input filename
     
     current.report <-
-      current.report[-seq(1, 4), ] # remove the column headers e.g. Question Answer Points.Earned
+      current.report[-seq(1, 4),] # remove the column headers e.g. Question Answer Points.Earned
     
     current.report <-
       rbind(section.header,
@@ -364,8 +367,7 @@ CreateReport <- function(report) {
   
   saveWorkbook(wb, output.file.name, overwrite = TRUE) # writes a workbook containing all reports inputted
 }
-
-# compiled version of the above
+# compiled version of CreateReport
 cCreateReport <- cmpfun(CreateReport)
 
 CombineReports <- function(path.to.examiner.folder) {
@@ -407,7 +409,7 @@ ExamineR()
 
 # combines the reports created by ExamineR if user clicks OK
 #if (winDialog("okcancel", "Select the ExamineR directory created by ExamineR.R") == "OK") {
-if ( (length(which(list.files() == "ExamineR Reports")) > 0) == TRUE ) {
+if ((length(which(list.files() == "ExamineR Reports")) > 0) == TRUE) {
   setwd("ExamineR Reports")
   CombineReports()
   OpenDir()
