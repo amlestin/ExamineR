@@ -2,8 +2,50 @@ if (!require("openxlsx", character.only = T, quietly = T)) {
   install.packages("openxlsx")
 }
 
+# if (!require("doParallel", character.only = T, quietly = T)) {
+#   install.packages("doParallel")
+# }
+
 library(openxlsx) # library for reading and creating Excel XLSX files
 library(compiler)
+
+# 
+# ParallelCombineReports <- function(path.to.examiner.folder) {
+#   #  path.to.examiner.folder <- choose.dir()
+#   
+#   path.to.examiner.folder <- getwd()
+#   
+#   # Mac version
+#   # path.to.examiner.folder <- .rs.api.selectDirectory()
+#   id.to.reports.map <- FindReportsById(path.to.examiner.folder)
+#   number.of.students <- length(names(id.to.reports.map))
+#   
+#   progress.bar.title <- "CombineR Progress: "
+#   progress.bar <- winProgressBar(
+#     title = progress.bar.title,
+#     min = 0,
+#     max = number.of.students,
+#     width = 300
+#   )
+#   a <- proc.time()
+#   registerDoParallel(detectCores())
+#   foreach(i=1:number.of.students) %do% {
+#      cCreateReport(id.to.reports.map[[i]])
+#      setWinProgressBar(progress.bar,
+#                        i,
+#                        title = paste(
+#                          progress.bar.title,
+#                          round(i / number.of.students *
+#                                  100, 0),
+#                          "% done",
+#                          sep = ""
+#                        ))
+#    }
+#   b <- proc.time()
+#   print(b-a)
+# 
+#   close(progress.bar)
+# }
 
 OpenDir <- function(dir = getwd()) {
   # function to open a file explorer from R
@@ -14,6 +56,9 @@ OpenDir <- function(dir = getwd()) {
     system("open .")
   }
 }
+
+# quit without warning
+formals(quit)$save <- formals(q)$save <- "no"
 
 # strips question from report column name
 StripQuestion <- function(question) {
@@ -82,6 +127,10 @@ ProcessExam <- function(exam.title) {
   dialog.message <- paste("Is", exam.name, "randomized?")
   is.randomized <-
     ifelse(winDialog(type = "yesno", dialog.message) == "YES", TRUE, FALSE)
+  dialog.message <- paste("Show all answers for", exam.name, "?")
+  show.all.answers <-
+    ifelse(winDialog(type = "yesno", dialog.message) == "YES", TRUE, FALSE)
+  
   if (is.randomized == TRUE) {
     sorted.questions <- questions[order(questions)]
     sorted.answers <- answers[order(questions)]
@@ -96,7 +145,7 @@ ProcessExam <- function(exam.title) {
   
   # extracts vector of question strings from column names
   stripped.questions <- sapply(sorted.questions, cStripQuestion)
-  unname(stripped.questions)
+  invisible(unname(stripped.questions))
   
   number.of.students <- nrow(report)
   reports <- vector(mode = "list", length = number.of.students)
@@ -112,7 +161,7 @@ ProcessExam <- function(exam.title) {
       
       # ensures only missed questions are written to the final report
       grade <- report[i, answer.index + 1]
-      if (grade != "0") {
+      if (!show.all.answers & grade != "0") {
         next
       }
       
@@ -125,7 +174,7 @@ ProcessExam <- function(exam.title) {
       student.answers <- c(student.answers, answer)
     }
     
-    if (length(student.answers) == 0) {
+    if (!show.all.answers & length(student.answers) == 0) {
       question.numbers <- "ALL"
       student.answers <- "CORRECT"
     }
@@ -154,11 +203,16 @@ ProcessExam <- function(exam.title) {
     course.name <-
       paste(course.name, collapse = " ") # course name as character
     
+    if (show.all.answers)
+      course.name.and.setting <- c(course.name, "ALL RESPONSES") 
+    else
+      course.name.and.setting <- c(course.name, "INCORRECT RESPONSES") 
+    
     student.report <-
       rbind(
         c(student.id, ""),
         c(student.name, ""),
-        c(course.name, ""),
+        course.name.and.setting,
         c("#", "Student Response"),
         student.report,
         score.row
@@ -179,6 +233,7 @@ ProcessExam <- function(exam.title) {
   for (i in 1:number.of.students) {
     student.id <- as.character(reports[[i]][1, 1])
     student.name <- as.character(reports[[i]][2, 1])
+    student.name <- gsub("-", " ", student.name)
     output.file.name <-
       paste(student.name, "-", student.id, ".csv", sep = "")
     write.table(
@@ -202,6 +257,9 @@ ExamineR <- function() {
     # only supports one file at a time, in the future may loop through files directory with list.dir
     input.files <- file.choose()
   }
+  
+  if (length(input.files) == 0)
+    q()
   
   # creates a report for each exam file selected by the user
   number.of.exam.files <- length(input.files)
@@ -387,7 +445,9 @@ CombineReports <- function(path.to.examiner.folder) {
     max = number.of.students,
     width = 300
   )
-  
+
+
+  a <- proc.time()
   for (i in 1:number.of.students) {
     cCreateReport(id.to.reports.map[[i]])
     setWinProgressBar(progress.bar,
@@ -400,6 +460,8 @@ CombineReports <- function(path.to.examiner.folder) {
                         sep = ""
                       ))
   }
+  b <- proc.time()
+  print(b-a)
   close(progress.bar)
 }
 
@@ -412,12 +474,11 @@ ExamineR()
 if ((length(which(list.files() == "ExamineR Reports")) > 0) == TRUE) {
   setwd("ExamineR Reports")
   CombineReports()
+#  ParallelCombineReports()
   OpenDir()
 } else {
   print("No ExamineR Reports directory found. Reports will not be combined.")
 }
 
-# quit without warning
-formals(quit)$save <- formals(q)$save <- "no"
 q(
 )
