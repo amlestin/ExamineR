@@ -2,8 +2,52 @@ if (!require("openxlsx", character.only = T, quietly = T)) {
   install.packages("openxlsx")
 }
 
+if (!require("doParallel", character.only = T, quietly = T)) {
+   install.packages("doParallel")
+}
+
 library(openxlsx) # library for reading and creating Excel XLSX files
 library(compiler)
+
+ParallelCombineReports <- function(path.to.examiner.folder) {
+   #  path.to.examiner.folder <- choose.dir()
+   
+   path.to.examiner.folder <- getwd()
+   
+   # Mac version
+   # path.to.examiner.folder <- .rs.api.selectDirectory()
+   id.to.reports.map <- FindReportsById(path.to.examiner.folder)
+   number.of.students <- length(names(id.to.reports.map))
+   
+   progress.bar.title <- "CombineR Progress: "
+   progress.bar <- winProgressBar(
+     title = progress.bar.title,
+     min = 0,
+     max = number.of.students,
+     width = 300
+   )
+   a <- proc.time()
+   registerDoParallel(detectCores())
+   foreach(i=1:number.of.students) %do% {
+      cCreateReport(id.to.reports.map[[i]])
+      setWinProgressBar(progress.bar,
+                        i,
+                        title = paste(
+                          progress.bar.title,
+                          round(i / number.of.students *
+                                  100, 0),
+                          "% done",
+                          sep = ""
+                        ))
+    }
+   b <- proc.time()
+   print(b-a)
+ 
+   close(progress.bar)
+}
+
+# compiled version of ParallelCombineReports
+cParallelCombineReports <- cmpfun(ParallelCombineReports)
 
 OpenDir <- function(dir = getwd()) {
   # function to open a file explorer from R
@@ -386,43 +430,6 @@ CreateReport <- function(report.paths) {
 # compiled version of CreateReport
 cCreateReport <- cmpfun(CreateReport)
 
-CombineReports <- function(path.to.examiner.folder) {
-  #  path.to.examiner.folder <- choose.dir()
-  
-  path.to.examiner.folder <- getwd()
-  
-  # Mac version
-  # path.to.examiner.folder <- .rs.api.selectDirectory()
-  id.to.reports.map <- FindReportsById(path.to.examiner.folder)
-  number.of.students <- length(names(id.to.reports.map))
-  
-  progress.bar.title <- "CombineR Progress: "
-  progress.bar <- winProgressBar(
-    title = progress.bar.title,
-    min = 0,
-    max = number.of.students,
-    width = 300
-  )
-
-
-  a <- proc.time()
-  for (i in 1:number.of.students) {
-    cCreateReport(id.to.reports.map[[i]])
-    setWinProgressBar(progress.bar,
-                      i,
-                      title = paste(
-                        progress.bar.title,
-                        round(i / number.of.students *
-                                100, 0),
-                        "% done",
-                        sep = ""
-                      ))
-  }
-  b <- proc.time()
-  print(b-a)
-  close(progress.bar)
-}
-
 # runs ExamineR to create reports
 ExamineR()
 
@@ -430,7 +437,7 @@ ExamineR()
 #if (winDialog("okcancel", "Select the ExamineR directory created by ExamineR.R") == "OK") {
 if ((length(which(list.files() == "ExamineR Reports")) > 0) == TRUE) {
   setwd("ExamineR Reports")
-  CombineReports()
+  cParallelCombineReports()
   OpenDir()
 } else {
   print("No ExamineR Reports directory found. Reports will not be combined.")
