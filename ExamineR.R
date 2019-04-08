@@ -129,6 +129,13 @@ ProcessExam <- function(exam.title) {
       # adds answer to student's incorrect answers vector
       answer <- as.character(report[i, answer.index])
       answer <- trimws(answer)
+      
+      if (is.na(answer))  {
+        answer <- "Error: NA"
+      } else if (answer == "") {
+        answer <- "No Answer"
+      }
+      
       student.answers <- c(student.answers, answer)
     }
     
@@ -162,9 +169,10 @@ ProcessExam <- function(exam.title) {
       paste(course.name, collapse = " ") # course name as character
     
     if (show.all.answers)
-      course.name.and.setting <- c(course.name, "ALL RESPONSES") 
+      course.name.and.setting <- c(course.name, "ALL RESPONSES")
     else
-      course.name.and.setting <- c(course.name, "INCORRECT RESPONSES") 
+      course.name.and.setting <-
+      c(course.name, "INCORRECT RESPONSES")
     
     student.report <-
       rbind(
@@ -290,7 +298,7 @@ FindReportsById <- function(path.to.examiner.folder) {
   
   return(id.to.reports.map)
 }
- 
+
 SortReportPaths <- function(report.paths) {
   meta.report.paths <- report.paths
   meta.report.paths <-
@@ -301,7 +309,7 @@ SortReportPaths <- function(report.paths) {
     sort(meta.report.paths, index.return = TRUE)$ix
   sorted.report.paths <- report.paths[sorted.indices.paths]
 }
-  
+
 CreateReport <- function(report.paths) {
   # extracts the input filename and modifies it to create an output filename
   output.file.name <- basename(report.paths[1])
@@ -317,7 +325,7 @@ CreateReport <- function(report.paths) {
   wb <- createWorkbook("Admin")
   sheet.number <- 1
   addWorksheet(wb, sheet.number) # add modified report to a worksheet
- 
+  
   report.paths <- SortReportPaths(report.paths)
   
   combined.report <- c()
@@ -336,8 +344,8 @@ CreateReport <- function(report.paths) {
                header = FALSE) # read in a report
     })
     
-    course.title <- as.character(current.report[3,][1])
-    student.name <- as.character(current.report[2,][1])
+    course.title <- as.character(current.report[3, ][1])
+    student.name <- as.character(current.report[2, ][1])
     course.and.student.name <-
       paste(course.title, student.name, sep = " - ")
     
@@ -345,7 +353,7 @@ CreateReport <- function(report.paths) {
       c("", course.and.student.name) # creates an exam title using the input filename
     
     current.report <-
-      current.report[-seq(1, 4),] # remove the column headers e.g. Question Answer Points.Earned
+      current.report[-seq(1, 4), ] # remove the column headers e.g. Question Answer Points.Earned
     
     current.report <-
       rbind(section.header,
@@ -403,8 +411,8 @@ CombineReports <- function(path.to.examiner.folder) {
     max = number.of.students,
     width = 300
   )
-
-
+  
+  
   a <- proc.time()
   for (i in 1:number.of.students) {
     cCreateReport(id.to.reports.map[[i]])
@@ -419,7 +427,7 @@ CombineReports <- function(path.to.examiner.folder) {
                       ))
   }
   b <- proc.time()
-  print(b-a)
+  print(b - a)
   close(progress.bar)
 }
 
