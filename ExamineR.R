@@ -46,7 +46,7 @@ ProcessExam <- function(exam.title) {
   report <- tryCatch({
     read.csv(exam.title, fileEncoding = "UTF-8")
   }, warning = function(w) {
-    print("Reading CSV using default encoding")
+    # print("Reading CSV using default encoding")
     read.csv(exam.title)
   })
   
@@ -243,7 +243,7 @@ ExamineR <- function() {
   # increments the progress bar after each exam
   for (exam.count in 1:number.of.exam.files) {
     current.exam <- input.files[exam.count]
-    print(paste("Processing ", current.exam, "...", sep = ""))
+    # print(paste("Processing ", current.exam, "...", sep = ""))
     cProcessExam(current.exam)
     setWinProgressBar(progress.bar,
                       exam.count,
@@ -338,7 +338,7 @@ CreateReport <- function(report.paths) {
         fileEncoding = "UTF-8"
       ) # read in a report
     }, warning = function(w) {
-      print("Reading CSV using default encoding")
+      # print("Reading CSV using default encoding")
       read.csv(report,
                stringsAsFactors = FALSE,
                header = FALSE) # read in a report
@@ -413,7 +413,7 @@ CombineReports <- function(path.to.examiner.folder) {
   )
   
   
-  a <- proc.time()
+  # a <- proc.time()
   for (i in 1:number.of.students) {
     cCreateReport(id.to.reports.map[[i]])
     setWinProgressBar(progress.bar,
@@ -426,8 +426,8 @@ CombineReports <- function(path.to.examiner.folder) {
                         sep = ""
                       ))
   }
-  b <- proc.time()
-  print(b - a)
+  # b <- proc.time()
+  # print(b - a)
   close(progress.bar)
 }
 
