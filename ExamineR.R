@@ -300,14 +300,24 @@ FindReportsById <- function(path.to.examiner.folder) {
 }
 
 SortReportPaths <- function(report.paths) {
-  meta.report.paths <- report.paths
-  meta.report.paths <-
-    gsub("Medical", meta.report.paths, replacement = "")
-  meta.report.paths <-
-    gsub("Basic", meta.report.paths, replacement = "")
-  sorted.indices.paths <-
-    sort(meta.report.paths, index.return = TRUE)$ix
-  sorted.report.paths <- report.paths[sorted.indices.paths]
+  
+  split.paths <- strsplit(report.paths, "\\\\")
+  
+  exams <- unlist(lapply(1:length(split.paths), function(i) tail(unlist(split.paths[i]), n=1)))
+  
+  exams <-
+    gsub("Medical", exams, replacement = "")
+  exams <- 
+    gsub("Basic", exams, replacement = "")
+  
+  exams <- trimws(exams)
+  
+  sorted.exams.indices <-
+    sort(exams, index.return = TRUE)$ix
+  
+  sorted.exams <- report.paths[sorted.exams.indices]
+  
+  return(sorted.exams)
 }
 
 CreateReport <- function(report.paths) {
