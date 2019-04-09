@@ -130,6 +130,10 @@ ProcessExam <- function(exam.title) {
       answer <- as.character(report[i, answer.index])
       answer <- trimws(answer)
       
+      # marks answer as incorrect when show.all.answers is TRUE
+      if (show.all.answers & grade == "0")
+        answer <- paste("Incorrect:", answer)
+      
       if (is.na(answer))  {
         answer <- "Error: NA"
       } else if (answer == "") {
