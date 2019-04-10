@@ -304,14 +304,15 @@ FindReportsById <- function(path.to.examiner.folder) {
 }
 
 SortReportPaths <- function(report.paths) {
-  
   split.paths <- strsplit(report.paths, "\\\\")
   
-  exams <- unlist(lapply(1:length(split.paths), function(i) tail(unlist(split.paths[i]), n=1)))
+  exams <-
+    unlist(lapply(1:length(split.paths), function(i)
+      tail(unlist(split.paths[i]), n = 1)))
   
   exams <-
     gsub("Medical", exams, replacement = "")
-  exams <- 
+  exams <-
     gsub("Basic", exams, replacement = "")
   
   exams <- trimws(exams)
@@ -358,8 +359,8 @@ CreateReport <- function(report.paths) {
                header = FALSE) # read in a report
     })
     
-    course.title <- as.character(current.report[3, ][1])
-    student.name <- as.character(current.report[2, ][1])
+    course.title <- as.character(current.report[3,][1])
+    student.name <- as.character(current.report[2,][1])
     course.and.student.name <-
       paste(course.title, student.name, sep = " - ")
     
@@ -367,7 +368,7 @@ CreateReport <- function(report.paths) {
       c("", course.and.student.name) # creates an exam title using the input filename
     
     current.report <-
-      current.report[-seq(1, 4), ] # remove the column headers e.g. Question Answer Points.Earned
+      current.report[-seq(1, 4),] # remove the column headers e.g. Question Answer Points.Earned
     
     current.report <-
       rbind(section.header,
@@ -388,13 +389,10 @@ CreateReport <- function(report.paths) {
             combined.report,
             colNames = FALSE) # add the new worksheet to the workbook
   
-  # style.right.align.scores <- createStyle(halign = "center")
-  # style.right.align.scores <- createStyle(fontColour = "blue", halign = "right", valign = "center")
-  #
-  # conditionalFormatting(wb, sheet.number, cols=2, rows=1:nrow(combined.report), type = "contains", rule="Total Score:", style = style.right.align.scores)
-  # conditionalFormatting(wb, sheet.number, cols=2, rows=1:nrow(combined.report), type = "contains", rule="Pts missed:", style = style.right.align.scores)
-  #
-  #
+  # highlights incorrect answers red when the keywork appended to answers during SHOW ALL RESPONSES mode is used
+  style.highlight.red <- createStyle(bgFill = "red")
+  conditionalFormatting(wb, sheet.number, cols=2, rows=1:nrow(combined.report), type = "contains", rule="Incorrect:", style = style.highlight.red)
+  
   # resizes column widths to fit contents
   setColWidths(wb, sheet.number, cols = 1:3, widths = "auto")
   # makes sure sheet fits on one printable page
