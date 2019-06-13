@@ -162,7 +162,8 @@ ProcessExam <- function(exam.title) {
     score.row <- c("", score.string)
     
     student.id <-
-      as.character(report[i, "sis_id"]) # gets student ID
+#      as.character(report[i, "sis_id"]) # gets student ID
+      as.character(report[i, "id"]) # gets student ID
     course.title <-
       as.character(report[i, "section"]) # extracts course code and name
     split.course.title <-
